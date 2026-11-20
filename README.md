@@ -30,6 +30,22 @@ negative starting guess will usually converge to the left-hand solution. A
 poor starting point may fail to converge. The program reports the selected
 point, residuals, and convergence status.
 
+### Worked numerical example
+
+Enter the initial guess $(x_0,y_0)=(1.5,1.3)$. At this starting point, the
+residuals are
+
+$$
+F_1(1.5,1.3)=1.5^2+1.3^2-4=-0.06, \qquad
+F_2(1.5,1.3)=1.3-1.5^2+1=0.05.
+$$
+
+SciPy's nonlinear root solver iteratively adjusts the coordinates until both
+residuals are close to zero. It converges to approximately
+$(1.517490,1.302776)$. Starting with a negative $x$ guess, such as
+$(-1.5,1.3)$, will typically select the other intersection, approximately
+$(-1.517490,1.302776)$.
+
 Substitute $y=x^2-1$ into the circle equation and let $u=x^2$:
 
 $$
@@ -85,6 +101,24 @@ $$
 
 As $t$ moves from $h_i$ to $h_{i+1}$, $\alpha$ moves from 0 to 1 and the
 estimate moves along a straight line from $T_i$ to $T_{i+1}$.
+
+### Worked numerical example
+
+Suppose the measurements are $(8,20.0)$, $(10,24.4)$, $(12,29.6)$, and
+$(14,35.6)$, and the requested hour is $t=11.5$. The target lies between
+hours 10 and 12, so the linear estimate uses $(10,24.4)$ and $(12,29.6)$:
+
+$$
+\alpha=\frac{11.5-10}{12-10}=0.75,
+\qquad
+L(11.5)=(1-0.75)(24.4)+0.75(29.6)=28.30\ ^\circ\mathrm{C}.
+$$
+
+These four measurements lie on the quadratic curve
+$T(h)=0.1(h-8)^2+2(h-8)+20$. A cubic spline with SciPy's default
+`not-a-knot` condition reproduces this quadratic for these data, so
+$S(11.5)=28.225\ ^\circ\mathrm{C}$, displayed by the program as
+**28.23 °C**. The linear estimate is **28.30 °C**.
 
 ### Cubic spline estimate
 
