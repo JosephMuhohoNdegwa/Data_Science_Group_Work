@@ -144,3 +144,245 @@ curve over several intervals. This program uses SciPy's default
 - Install the dependencies with `python -m pip install numpy scipy matplotlib`.
 - Run either program with `python "NUM K.py"` or `python "NUM L.PY"` and
   follow its prompts.
+
+## Iterative methods for linear systems
+
+`Iterative temperature methods.py` demonstrates Jacobi and Gauss-Seidel
+iteration for the linear system
+
+$$
+AX=b,
+$$
+
+where $A$ is the coefficient matrix, $X$ is the vector of unknowns, and $b$
+is the right-hand-side vector. Both methods start from an initial estimate
+and stop when the largest change between successive estimates is less than
+the selected tolerance:
+
+$$
+\left\lVert X^{(k+1)}-X^{(k)}\right\rVert_\infty < \varepsilon.
+$$
+
+The program also solves the selected system directly with
+`numpy.linalg.solve` as a reference and plots the iteration changes on a
+logarithmic vertical scale.
+
+### Select a model
+
+The program offers three systems:
+
+1. **Original 5-point temperature model:** a five-variable tridiagonal
+   system with 2 on the diagonal, -1 on adjacent diagonals, and
+   $b=[100,0,0,0,20]$. It represents five interior temperatures influenced
+   by boundary temperatures of 100 C and 20 C.
+2. **Modified 3-point temperature model:** a three-variable tridiagonal
+   system with 4 on the diagonal, -1 on adjacent diagonals, and
+   $b=[100,50,20]$. The changed equations produce different temperature
+   estimates and convergence behavior.
+3. **General 3-variable linear system:**
+   $$
+   A=\begin{bmatrix}10&-2&1\\-1&8&-2\\2&-1&7\end{bmatrix},
+   \qquad b=[30,20,10].
+   $$
+   This demonstrates that the methods also apply to systems unrelated to
+   the temperature example.
+
+Changing the model changes the equations, solution, and iteration behavior.
+
+### Initial guesses and stopping controls
+
+- **Initial guesses:** enter one comma-separated value for each unknown, or
+  press Enter to start from zeros. The starting vector changes the sequence
+  of estimates and may change how many iterations are needed.
+- **Tolerance:** a smaller positive tolerance requires smaller changes
+  between successive estimates and generally takes more iterations. The
+  successive-change criterion is a stopping test; by itself it is not a
+  guarantee of the same-sized error from the exact solution for every system.
+- **Maximum iterations:** a positive limit on the number of steps. If neither
+  method reaches the tolerance in time, the program reports that it did not
+  converge within the limit. Increasing the limit allows more steps but does
+  not ensure convergence.
+
+The program rejects invalid model choices, guesses with the wrong number of
+entries, nonnumeric guesses or controls, nonpositive tolerance or iteration
+limits, and systems with a zero diagonal entry.
+
+### How the methods update the estimates
+
+Jacobi computes every component of the next estimate using only the previous
+iteration:
+
+$$
+x_i^{(k+1)}=\frac{1}{a_{ii}}
+\left(b_i-\sum_{j\ne i}a_{ij}x_j^{(k)}\right).
+$$
+
+Gauss-Seidel uses already-updated components from the current iteration and
+the remaining components from the previous one:
+
+$$
+x_i^{(k+1)}=\frac{1}{a_{ii}}
+\left(b_i-\sum_{j<i}a_{ij}x_j^{(k+1)}
+-\sum_{j>i}a_{ij}x_j^{(k)}\right).
+$$
+
+For these models, Gauss-Seidel typically reaches the chosen tolerance in
+fewer iterations. The graph shows the maximum component change at each step;
+decreasing curves indicate that the estimates are stabilizing.
+
+### Example results
+
+With zero initial guesses, tolerance `1e-8`, and a maximum of 500 iterations,
+the program produced these results:
+
+| Model | Jacobi iterations | Gauss-Seidel iterations | Solution (approximately) |
+| --- | ---: | ---: | --- |
+| Original 5-point temperature | 150 | 75 | `[86.6667, 73.3333, 60.0000, 46.6667, 33.3333]` |
+| Modified 3-point temperature | 22 | 12 | `[30.7143, 22.8571, 10.7143]` |
+| General 3-variable system | 20 | 11 | `[3.54528, 3.15992, 0.86705]` |
+
+These counts apply to the program's maximum-change stopping criterion and
+the stated settings.
+
+Run the program with:
+
+```bash
+python "Iterative temperature methods.py"
+```
+
+Install its dependencies with `python -m pip install numpy matplotlib`.
+
+## Task P: Ordinary Differential Equations - Euler's Method
+
+This example uses Euler's Method to approximate a fish population's growth
+over 10 years. It models the population with the ordinary differential
+equation
+
+$$
+\frac{dP}{dt}=rP,
+$$
+
+where $P$ is the population, $t$ is time in years, and $r$ is the growth
+rate. The program starts with 100 fish, uses a constant growth rate of
+0.2 per year, and takes one-year steps.
+
+Euler's Method advances the current estimate using
+
+$$
+P_{n+1}=P_n+h f(t_n,P_n).
+$$
+
+For this model, $f(t,P)=rP$, so the update is
+
+$$
+P_{n+1}=P_n+h rP_n.
+$$
+
+With $P_0=100$, $r=0.2$, and $h=1$, the first step gives
+$P_1=100+1(0.2\cdot100)=120$ fish.
+
+### Program and expected output
+
+The implementation is `fish_population_euler.py`. It prints the estimated
+population for each year and plots population against time. The first
+estimates are:
+
+| Year | Estimated population |
+| ---: | -------------------: |
+| 0 | 100.00 |
+| 1 | 120.00 |
+| 2 | 144.00 |
+| 3 | 172.80 |
+| 4 | 207.36 |
+
+Run it with:
+
+```bash
+python fish_population_euler.py
+```
+
+The program requires Python 3, NumPy, and Matplotlib. Install the project
+dependencies with `python -m pip install numpy scipy matplotlib`.
+
+### Changing the step size
+
+In the program, change `h = 1.0` to `h = 0.5` to use half-year steps. A
+smaller step generally improves Euler's approximation for this smooth growth
+model, at the cost of more calculations. Compare the output using each step
+size.
+
+### Graph interpretation and assumptions
+
+The graph places time on the horizontal axis and estimated population on the
+vertical axis. The population rises, with larger yearly increases as the
+estimated population grows, because the model makes the growth rate
+proportional to the current population.
+
+This simplified model assumes an initial population of 100, a constant
+growth rate of 0.2 per year, unlimited food and space, and no effects from
+disease, predators, or environmental changes. Population values are
+mathematical estimates and may be fractional; real fish populations may
+behave differently.
+
+## Task 09: Eigenvalues and eigenvectors
+
+`Student performance PCA.py` uses a covariance-matrix eigenanalysis to
+identify the main pattern of variation in eight students' marks across four
+subjects: Mathematics, Programming, Physics, and Statistics. Each row of the
+input matrix is a student, and each column is a subject.
+
+The program calculates each subject's mean, centers the marks by subtracting
+those means, and computes the covariance matrix. It then finds and sorts the
+covariance matrix's eigenvalues and eigenvectors. The eigenvector associated
+with the largest eigenvalue gives the dominant direction of variation; the
+eigenvalue indicates the amount of variation along that direction. The
+program reports the dominant direction's percentage of total variance and
+checks the eigenvalue equation
+
+$$
+Av=\lambda v,
+$$
+
+where $A$ is the covariance matrix, $v$ is the dominant eigenvector, and
+$\lambda$ is its eigenvalue.
+
+### Assumptions and input data
+
+The example assumes the eight demonstration records are accurate numerical
+marks on the same 0-to-100 scale, and that each subject is a separate
+variable. The data are illustrative and are not actual university exam
+records.
+
+| Student | Mathematics | Programming | Physics | Statistics |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 80 | 85 | 75 | 82 |
+| 2 | 70 | 75 | 65 | 72 |
+| 3 | 90 | 95 | 85 | 92 |
+| 4 | 60 | 65 | 55 | 62 |
+| 5 | 85 | 88 | 80 | 86 |
+| 6 | 75 | 78 | 70 | 76 |
+| 7 | 95 | 98 | 90 | 96 |
+| 8 | 65 | 68 | 60 | 66 |
+
+### Results and interpretation
+
+For these data, the mean marks are 77.50 in Mathematics, 81.50 in
+Programming, 72.50 in Physics, and 79.00 in Statistics. The leading
+eigenvalue is approximately 592.0989, and the leading component explains
+about 99.87% of the total variation.
+
+The dominant eigenvector has components with nearly equal magnitudes for all
+four subjects. This indicates that they contribute similarly to the primary
+pattern of variation in this particular dataset. Eigenvector signs are
+arbitrary: reversing all signs describes the same principal direction.
+The near-zero verification error confirms that the computed eigenpair
+satisfies $Av=\lambda v$ to numerical precision.
+
+Run the analysis with:
+
+```bash
+python "Student performance PCA.py"
+```
+
+The program requires NumPy, available through
+`python -m pip install numpy`.
